@@ -1,0 +1,9 @@
+fastapi==0.110.0
+uvicorn==0.29.0
+sqlalchemy==2.0.29
+python-dotenv==1.0.1
+google-generativeai==0.4.1
+pydantic
+requests
+pyjwt
+google-generativeai

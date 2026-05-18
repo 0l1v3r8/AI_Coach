@@ -1,0 +1,23 @@
+.chat-container {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--pico-background-color);
+}
+
+.chat-message {
+    margin-bottom: 0.5rem;
+}
+
+.user-msg {
+    color: var(--pico-primary);
+    text-align: right;
+}
+
+.coach-msg {
+    color: var(--pico-color);
+    text-align: left;
+}

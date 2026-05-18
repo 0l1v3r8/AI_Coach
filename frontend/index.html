@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tri-Coach</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header class="container">
+        <nav>
+            <ul>
+                <li><strong>AI Tri-Coach</strong></li>
+            </ul>
+            <ul id="nav-menu">
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <section id="login-view" style="display: none; text-align: center; margin-top: 10vh;">
+            <h2>Welcome to AI Tri-Coach</h2>
+            <p>Your intelligent, data-driven triathlon coaching assistant.</p>
+            <a href="/api/auth/google/login" role="button">Login with Google</a>
+        </section>
+
+        <section id="dashboard-view" style="display: none;">
+            <div class="grid">
+                <article>
+                    <header>Current Fitness (CTL)</header>
+                    <div id="fitness-summary">
+                        <h1 id="current-ctl" style="margin-bottom: 0;">--</h1>
+                        <p style="color: var(--pico-muted-color);">Fatigue (ATL): <span id="current-atl">--</span> |
+                            Form (TSB): <span id="current-tsb">--</span></p>
+                    </div>
+                </article>
+
+                <article>
+                    <header>Biological Baseline</header>
+                    <div id="baseline-summary">
+                        <p><strong>Estimated FTP:</strong> <span id="current-ftp"
+                                style="color: var(--pico-primary);">--</span></p>
+                        <p><strong>Threshold HR:</strong> <span id="current-lthr"
+                                style="color: var(--pico-primary);">--</span></p>
+                        <p style="font-size: 0.8rem; color: var(--pico-muted-color); margin-bottom: 0;">Calculated from
+                            20m peak power and sustained hard efforts.</p>
+                    </div>
+                </article>
+            </div>
+
+            <button id="sync-strava-btn" class="outline">Fetch Latest Strava Data</button>
+
+            <hr>
+
+            <section id="chat-section">
+                <h3>Coach Chat</h3>
+                <div id="chat-box" class="chat-container">
+                    <p><em>Coach: Welcome back! How are we feeling today?</em></p>
+                </div>
+                <form id="chat-form">
+                    <fieldset role="group">
+                        <input type="text" id="chat-input" placeholder="Ask your AI coach something..."
+                            autocomplete="off">
+                        <button type="submit">Send</button>
+                    </fieldset>
+                </form>
+            </section>
+        </section>
+
+        <section id="pbs-view" style="display: none;">
+            <h2>Historical Efforts</h2>
+            <p>Filter your activities to track your progression across specific distances and power outputs.</p>
+
+            <div class="grid"
+                style="margin-bottom: 1rem; background: var(--pico-card-background-color); padding: 1rem; border-radius: 5px;">
+                <label>Sport
+                    <select id="records-sport">
+                        <option value="">-- Select Sport --</option>
+                    </select>
+                </label>
+                <label>Metric
+                    <select id="records-metric" disabled>
+                        <option value="">-- Select Metric --</option>
+                    </select>
+                </label>
+                <label>Sort By
+                    <select id="records-sort">
+                        <option value="date_desc">Newest First</option>
+                        <option value="date_asc">Oldest First</option>
+                        <option value="perf_best">Best Performance</option>
+                    </select>
+                </label>
+            </div>
+
+            <figure>
+                <table role="grid">
+                    <thead>
+                        <tr>
+                            <th scope="col">Date Achieved</th>
+                            <th scope="col">Metric</th>
+                            <th scope="col">Result</th>
+                            <th scope="col">Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-table-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Select a sport and metric to view history.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+
+        <section id="analytics-view" style="display: none;">
+            <h2>Fitness / Fatigue / Form</h2>
+            <p>Your 6-month training load time-series.</p>
+            <figure>
+                <canvas id="fitnessChart" width="800" height="400"></canvas>
+            </figure>
+        </section>
+
+        <section id="calendar-view" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Training Calendar</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="date" id="micro-week-start" style="margin-bottom: 0; padding: 0.2rem;"
+                        title="Select Monday of the week to generate">
+                    <button id="generate-week-btn" class="outline" style="margin-bottom: 0;">✨ Generate Week</button>
+
+                    <button id="prev-month" class="outline secondary"
+                        style="width: auto; margin-bottom: 0;">&larr;</button>
+                    <strong id="calendar-month-label" style="font-size: 1.2rem;">Month YYYY</strong>
+                    <button id="next-month" class="outline secondary"
+                        style="width: auto; margin-bottom: 0;">&rarr;</button>
+                </div>
+            </div>
+
+            <details>
+                <summary role="button" class="secondary">Schedule New Workout</summary>
+                <article>
+                    <form id="schedule-form">
+                        <div class="grid">
+                            <label>Date <input type="date" id="w-date" required></label>
+                            <label>Sport
+                                <select id="w-type">
+                                    <option value="Run">Run</option>
+                                    <option value="Ride">Ride</option>
+                                    <option value="Swim">Swim</option>
+                                    <option value="Strength">Strength</option>
+                                    <option value="Mobility">Mobility</option>
+                                    <option value="Rest">Rest Day</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label>Title <input type="text" id="w-title" required></label>
+                        <div class="grid">
+                            <label>Duration (mins) <input type="number" id="w-duration"></label>
+                            <label>Planned TSS <input type="number" id="w-tss"></label>
+                        </div>
+                        <label>Description (Workout Structure)
+                            <textarea id="w-desc"></textarea>
+                        </label>
+                        <button type="submit">Save & Push to Intervals.icu</button>
+                    </form>
+                </article>
+            </details>
+
+            <div id="calendar-grid"
+                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 2rem;">
+            </div>
+        </section>
+
+        <section id="goals-view" style="display: none;">
+            <h2>Long Term Goals & Priorities <span id="goals-status-badge"
+                    style="display:none; font-size: 1rem; color: green; margin-left: 10px;">✅ Saved & Active</span></h2>
+
+            <p>Define your primary targets so your AI coach can build periodized plans around them.</p>
+            <form id="goals-form">
+                <label>Primary "A" Race (or main goal)
+                    <input type="text" id="goal-arace" placeholder="e.g., Ironman Wales - Sept 15, 2026">
+                </label>
+                <label>Key Training Priorities
+                    <textarea id="goal-priorities" rows="4"
+                        placeholder="e.g., Improve my run off the bike, focus on hip mobility, strictly adhere to Zone 2 on long rides."></textarea>
+                </label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button type="submit" style="width: auto; margin-bottom: 0;">Save Goals</button>
+                    <span id="goals-save-status" style="color: green;"></span>
+                </div>
+            </form>
+
+            <hr>
+            <article>
+                <header>AI Macro Planner <span id="macro-status-badge"
+                        style="display:none; font-size: 0.9rem; color: green; float: right;">✅ Context Loaded</span>
+                </header>
+                <p>Generate a high-level periodized plan leading to your A-Race.</p>
+                <form id="macro-plan-form">
+                    <div class="grid">
+                        <label>Start Date (Upcoming Monday) <input type="date" id="macro-start" required></label>
+                        <label>A-Race / Target Date <input type="date" id="macro-target" required></label>
+                    </div>
+                    <button type="submit" id="macro-btn">Generate AI Macro Plan</button>
+                </form>
+            </article>
+
+            <hr>
+
+            <article>
+                <header>Current Macro Plan</header>
+                <figure>
+                    <table role="grid">
+                        <thead>
+                            <tr>
+                                <th>Week Start</th>
+                                <th>Phase</th>
+                                <th>Focus</th>
+                                <th>Target TSS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="macro-plan-body">
+                            <tr>
+                                <td colspan="4" style="text-align: center;">No plan generated yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </figure>
+            </article>
+        </section>
+
+        <section id="settings-view" style="display: none;">
+            <h2>Settings</h2>
+            <p>Logged in as: <strong id="user-profile">Loading...</strong></p>
+            <hr>
+
+            <article>
+                <header>Integrations</header>
+                <p id="connection-status"></p>
+
+                <div class="grid">
+                    <div>
+                        <h4>Strava</h4>
+                        <p>Connect your account to sync activities automatically.</p>
+
+                        <div id="strava-unconnected">
+                            <a href="/api/auth/strava/login" role="button" class="secondary">Connect Strava</a>
+                        </div>
+
+                        <div id="strava-connected" style="display: none;">
+                            <p style="color: green;"><strong>✅ Connected</strong></p>
+                            <button id="disconnect-strava-btn" class="outline secondary">Disconnect</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>Intervals.icu</h4>
+                        <p>Enter your API key to sync wellness and calendar data.</p>
+
+                        <div id="intervals-unconnected">
+                            <form id="intervals-form">
+                                <fieldset role="group">
+                                    <input type="text" id="intervals-key" placeholder="API Key">
+                                    <button type="submit" class="outline">Save</button>
+                                </fieldset>
+                            </form>
+                        </div>
+
+                        <div id="intervals-connected" style="display: none;">
+                            <p style="color: green;"><strong>✅ Connected</strong></p>
+                            <button id="disconnect-intervals-btn" class="outline secondary">Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article>
+                <header>System Status</header>
+                <p>Backend API: <span id="api-status">Checking...</span></p>
+            </article>
+        </section>
+
+    </main>
+
+    <dialog id="pb-modal">
+        <article>
+            <header>
+                <a href="#close" aria-label="Close" class="close"
+                    onclick="document.getElementById('pb-modal').removeAttribute('open')"></a>
+                Manual PB Override
+            </header>
+            <form id="pb-edit-form">
+                <input type="hidden" id="edit-pb-id">
+                <label>Time (Total Seconds OR Watts)
+                    <input type="number" id="edit-pb-time" required>
+                </label>
+                <label>Date Achieved
+                    <input type="date" id="edit-pb-date" required>
+                </label>
+                <label>Strava Activity ID (Optional)
+                    <input type="text" id="edit-pb-link">
+                </label>
+                <button type="submit">Save Record</button>
+            </form>
+        </article>
+    </dialog>
+
+    <dialog id="workout-modal">
+        <article>
+            <header>
+                <a href="#close" aria-label="Close" class="close"
+                    onclick="document.getElementById('workout-modal').removeAttribute('open')"></a>
+                Workout Details
+            </header>
+            <form id="workout-edit-form">
+                <input type="hidden" id="edit-wo-id">
+                <div class="grid">
+                    <label>Type <input type="text" id="edit-wo-type" required></label>
+                    <label>Title <input type="text" id="edit-wo-title" required></label>
+                </div>
+                <div class="grid">
+                    <label>Duration (min) <input type="number" id="edit-wo-duration"></label>
+                    <label>TSS <input type="number" id="edit-wo-tss"></label>
+                </div>
+                <label>Description
+                    <textarea id="edit-wo-desc" rows="6"></textarea>
+                </label>
+                <div class="grid">
+                    <button type="submit">Save Changes</button>
+                    <button type="button" class="secondary outline" id="delete-wo-btn">Delete Workout</button>
+                </div>
+            </form>
+        </article>
+    </dialog>
+
+    <script type="module" src="/static/js/app.js"></script>
+</body>
+
+</html>
