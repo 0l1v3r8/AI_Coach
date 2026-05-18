@@ -267,70 +267,6 @@
                     </tbody>
                 </table>
             </figure>
-
-            <dialog id="workout-modal">
-                <article style="max-width: 600px;">
-                    <header>
-                        <button aria-label="Close" rel="prev"
-                            onclick="document.getElementById('workout-modal').removeAttribute('open')"></button>
-                        <h2>Edit Scheduled Workout</h2>
-                    </header>
-                    <form id="workout-edit-form" style="margin-bottom: 0;">
-                        <input type="hidden" id="edit-wo-id">
-                        <div class="grid">
-                            <label>Sport
-                                <select id="edit-wo-type">
-                                    <option value="Run">🏃 Run</option>
-                                    <option value="Ride">🚴 Ride</option>
-                                    <option value="Swim">🏊 Swim</option>
-                                    <option value="Strength">🏋️ Strength</option>
-                                    <option value="Mobility">🧘 Mobility</option>
-                                    <option value="Rest">🛌 Rest Day</option>
-                                </select>
-                            </label>
-                            <label>Title <input type="text" id="edit-wo-title" required></label>
-                        </div>
-                        <div class="grid">
-                            <label>Duration (mins) <input type="number" id="edit-wo-duration"></label>
-                            <label>Planned TSS <input type="number" id="edit-wo-tss"></label>
-                        </div>
-                        <label>Detailed Sets & Zones
-                            <textarea id="edit-wo-desc" rows="6"
-                                placeholder="Warm-up, Main Set, Cool-down..."></textarea>
-                        </label>
-                        <footer>
-                            <button type="button" class="secondary outline"
-                                onclick="document.getElementById('workout-modal').removeAttribute('open')">Cancel</button>
-                            <button type="button" class="outline" id="delete-wo-btn"
-                                style="color: var(--pico-form-element-invalid-active-border-color); border-color: var(--pico-form-element-invalid-active-border-color);">Delete</button>
-                            <button type="submit">Save Changes</button>
-                        </footer>
-                    </form>
-                </article>
-            </dialog>
-
-            <dialog id="macro-modal">
-                <article>
-                    <header>
-                        <button aria-label="Close" rel="prev"
-                            onclick="document.getElementById('macro-modal').removeAttribute('open')"></button>
-                        <h2>Edit Macro Plan Week</h2>
-                    </header>
-                    <form id="macro-edit-form" style="margin-bottom: 0;">
-                        <input type="hidden" id="edit-macro-id">
-                        <label>Phase <input type="text" id="edit-macro-phase" required></label>
-                        <label>Focus <input type="text" id="edit-macro-focus" required></label>
-                        <label>Target TSS <input type="number" id="edit-macro-tss" required></label>
-                        <footer>
-                            <button type="button" class="secondary outline"
-                                onclick="document.getElementById('macro-modal').removeAttribute('open')">Cancel</button>
-                            <button type="submit">Save Changes</button>
-                        </footer>
-                    </form>
-                </article>
-            </dialog>
-
-            <script type="module" src="/static/js/app.js"></script>
         </section>
 
         <section id="settings-view" style="display: none;">
@@ -388,9 +324,93 @@
     </main>
 
     <dialog id="pb-modal">
+        <article>
+            <header>
+                <button aria-label="Close" rel="prev"
+                    onclick="document.getElementById('pb-modal').removeAttribute('open')"></button>
+                <h2>Edit Effort Record</h2>
+            </header>
+            <form id="pb-edit-form" style="margin-bottom: 0;">
+                <input type="hidden" id="edit-pb-id">
+                <div class="grid">
+                    <label>Result (Seconds or Watts)
+                        <input type="number" id="edit-pb-time" required>
+                    </label>
+                    <label>Date Achieved
+                        <input type="date" id="edit-pb-date" required>
+                    </label>
+                </div>
+                <label>Strava Activity ID (Optional)
+                    <input type="text" id="edit-pb-link">
+                </label>
+                <footer>
+                    <button type="button" class="secondary outline"
+                        onclick="document.getElementById('pb-modal').removeAttribute('open')">Cancel</button>
+                    <button type="submit">Save Changes</button>
+                </footer>
+            </form>
+        </article>
     </dialog>
 
     <dialog id="workout-modal">
+        <article style="max-width: 600px;">
+            <header>
+                <button aria-label="Close" rel="prev"
+                    onclick="document.getElementById('workout-modal').removeAttribute('open')"></button>
+                <h2>Edit Scheduled Workout</h2>
+            </header>
+            <form id="workout-edit-form" style="margin-bottom: 0;">
+                <input type="hidden" id="edit-wo-id">
+                <div class="grid">
+                    <label>Sport
+                        <select id="edit-wo-type">
+                            <option value="Run">🏃 Run</option>
+                            <option value="Ride">🚴 Ride</option>
+                            <option value="Swim">🏊 Swim</option>
+                            <option value="Strength">🏋️ Strength</option>
+                            <option value="Mobility">🧘 Mobility</option>
+                            <option value="Rest">🛌 Rest Day</option>
+                        </select>
+                    </label>
+                    <label>Title <input type="text" id="edit-wo-title" required></label>
+                </div>
+                <div class="grid">
+                    <label>Duration (mins) <input type="number" id="edit-wo-duration"></label>
+                    <label>Planned TSS <input type="number" id="edit-wo-tss"></label>
+                </div>
+                <label>Detailed Sets & Zones
+                    <textarea id="edit-wo-desc" rows="6" placeholder="Warm-up, Main Set, Cool-down..."></textarea>
+                </label>
+                <footer>
+                    <button type="button" class="secondary outline"
+                        onclick="document.getElementById('workout-modal').removeAttribute('open')">Cancel</button>
+                    <button type="button" class="outline" id="delete-wo-btn"
+                        style="color: var(--pico-form-element-invalid-active-border-color); border-color: var(--pico-form-element-invalid-active-border-color);">Delete</button>
+                    <button type="submit">Save Changes</button>
+                </footer>
+            </form>
+        </article>
+    </dialog>
+
+    <dialog id="macro-modal">
+        <article>
+            <header>
+                <button aria-label="Close" rel="prev"
+                    onclick="document.getElementById('macro-modal').removeAttribute('open')"></button>
+                <h2>Edit Macro Plan Week</h2>
+            </header>
+            <form id="macro-edit-form" style="margin-bottom: 0;">
+                <input type="hidden" id="edit-macro-id">
+                <label>Phase <input type="text" id="edit-macro-phase" required></label>
+                <label>Focus <input type="text" id="edit-macro-focus" required></label>
+                <label>Target TSS <input type="number" id="edit-macro-tss" required></label>
+                <footer>
+                    <button type="button" class="secondary outline"
+                        onclick="document.getElementById('macro-modal').removeAttribute('open')">Cancel</button>
+                    <button type="submit">Save Changes</button>
+                </footer>
+            </form>
+        </article>
     </dialog>
 
     <script type="module" src="/static/js/app.js"></script>
