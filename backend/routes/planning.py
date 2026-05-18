@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models import schema
-from backend.models.pydantic import MacroPlanRequest, MicroPlanRequest, WorkoutCreate, WorkoutUpdate
+from backend.models.pydantic import MacroPlanRequest, MicroPlanRequest, WorkoutCreate, WorkoutUpdate, WeeklyPlanUpdate
 from backend.core.dependencies import get_current_user
 from backend.services.analytics import calculate_biological_baseline, calculate_fitness_fatigue
 from backend.services import gemini_service
@@ -170,6 +170,19 @@ def get_macro_plan(db: Session = Depends(get_db), user: schema.User = Depends(ge
             "targetTss": w.targetTss
         } for w in plan]
     }
+
+@router.put("/plan/macro/{plan_id}")
+def update_macro_plan(plan_id: int, plan_update: WeeklyPlanUpdate, db: Session = Depends(get_db), user: schema.User = Depends(get_current_user)):
+    """Allows the user to manually edit a macro plan week."""
+    plan = db.query(schema.WeeklyPlan).filter(schema.WeeklyPlan.id == plan_id, schema.WeeklyPlan.userId == user.id).first()
+    if not plan: 
+        raise HTTPException(status_code=404, detail="Macro plan week not found")
+    
+    plan.phase = plan_update.phase
+    plan.focus = plan_update.focus
+    plan.targetTss = plan_update.targetTss
+    db.commit()
+    return {"success": True}
 
 @router.post("/workouts")
 def schedule_workout(workout: WorkoutCreate, db: Session = Depends(get_db), user: schema.User = Depends(get_current_user)):

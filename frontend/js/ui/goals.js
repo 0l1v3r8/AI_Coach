@@ -13,10 +13,14 @@ export async function loadMacroPlan() {
                     <td>${week.phase}</td>
                     <td>${week.focus}</td>
                     <td>${week.targetTss}</td>
+                    <td style="text-align: right;">
+                        <a href="#" onclick="window.openMacroModal(${week.id}, '${week.phase.replace(/'/g, "\\'")}', '${week.focus.replace(/'/g, "\\'")}', ${week.targetTss}); return false;">Edit</a>
+                    </td>
                 </tr>
             `).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No plan generated yet.</td></tr>';
+            // Updated colspan to 5 to account for the new Action column
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No plan generated yet.</td></tr>';
         }
     } catch (err) {
         console.error("Error loading macro plan:", err);
@@ -24,6 +28,45 @@ export async function loadMacroPlan() {
 }
 
 export function initGoalsUI() {
+    // --- Expose Macro Edit Modal Globally for inline HTML onclicks ---
+    window.openMacroModal = function (id, phase, focus, tss) {
+        document.getElementById('edit-macro-id').value = id;
+        document.getElementById('edit-macro-phase').value = phase;
+        document.getElementById('edit-macro-focus').value = focus;
+        document.getElementById('edit-macro-tss').value = tss;
+        const modal = document.getElementById('macro-modal');
+        if (modal) modal.setAttribute('open', 'true');
+    };
+
+    // --- Handle Macro Plan Updates ---
+    const macroEditForm = document.getElementById('macro-edit-form');
+    if (macroEditForm) {
+        macroEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-macro-id').value;
+            const payload = {
+                phase: document.getElementById('edit-macro-phase').value,
+                focus: document.getElementById('edit-macro-focus').value,
+                targetTss: parseInt(document.getElementById('edit-macro-tss').value) || 0
+            };
+
+            try {
+                await fetchAPI(`/api/plan/macro/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                // Close the modal and reload the table
+                const modal = document.getElementById('macro-modal');
+                if (modal) modal.removeAttribute('open');
+
+                await loadMacroPlan();
+            } catch (err) {
+                console.error("Failed to update macro plan week:", err);
+            }
+        });
+    }
+
     // --- Auto-Fill Today's Date for Macro Start ---
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -34,6 +77,7 @@ export function initGoalsUI() {
     const macroStart = document.getElementById('macro-start');
     if (macroStart) macroStart.value = todayFormatted;
 
+    // --- Handle Goals Form Save ---
     const goalsForm = document.getElementById('goals-form');
     if (goalsForm) {
         goalsForm.addEventListener('submit', async (e) => {
@@ -65,6 +109,7 @@ export function initGoalsUI() {
         });
     }
 
+    // --- Handle AI Macro Plan Generation ---
     const macroForm = document.getElementById('macro-plan-form');
     if (macroForm) {
         macroForm.addEventListener('submit', async (e) => {

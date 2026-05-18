@@ -32,3 +32,8 @@ class MacroPlanRequest(BaseModel):
 
 class MicroPlanRequest(BaseModel):
     weekStartDate: str # YYYY-MM-DD
+
+class WeeklyPlanUpdate(BaseModel):
+    phase: str
+    focus: str
+    targetTss: int

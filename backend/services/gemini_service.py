@@ -51,7 +51,6 @@ def generate_macro_plan(athlete_profile: str, a_race: str, priorities: str, athl
 def generate_micro_plan(athlete_context: dict, macro_week_focus: str, macro_week_tss: int, week_dates: List[str]):
     """Generates specific daily workouts for a 7-day period aligned with the macro goal."""
     
-    # Pointing to the currently active model endpoint
     model = genai.GenerativeModel('gemini-2.5-flash')
     
     prompt = f"""
@@ -71,7 +70,8 @@ def generate_micro_plan(athlete_context: dict, macro_week_focus: str, macro_week
     - Provide exactly 7 entries using these EXACT dates in order: {week_dates}.
     - Include Swim, Ride, Run, Strength, and Mobility.
     - Factor in at least 1 Rest day.
-    - Use specific wattage and heart rate targets in the descriptions based on the biological baseline.
+    - NEW STRICT RULE: The `description` field MUST be structured into specific sets (e.g., Warm-up, Main Set, Cool-down). 
+    - For EVERY active segment in the description, explicitly state the target intensity utilizing the provided Biological Baseline. Output approximate HR Zones, exact BPM targets based on the LTHR ({athlete_context.get('lthr', 'Unknown')} bpm), and exact Power targets based on the FTP ({athlete_context.get('ftp', 'Unknown')} W).
     
     CRITICAL INSTRUCTION: You must return ONLY raw, valid JSON. Do not include markdown blocks, greetings, or explanations.
     
@@ -84,7 +84,7 @@ def generate_micro_plan(athlete_context: dict, macro_week_focus: str, macro_week
           "title": "Zone 2 Endurance",
           "duration": 90,
           "trainingLoad": 65,
-          "description": "Warmup 15m. Main set: 60m at 70% FTP. Cooldown 15m."
+          "description": "Warm-up: 15m steady ramp.\nMain Set: 60m @ 180W (Zone 2, ~135 bpm).\nCool-down: 15m easy spin."
         }}
       ]
     }}
