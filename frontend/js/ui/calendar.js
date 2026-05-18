@@ -148,10 +148,15 @@ function generateActivityHTML(ev) {
             </div>
         `;
     } else {
-        const safeDesc = (ev.description || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;").replace(/\n/g, "\\n");
+        // Safely encode multi-line strings and quotes so they don't break the HTML attribute
+        const safeDesc = encodeURIComponent(ev.description || "");
+        const safeTitle = encodeURIComponent(ev.title || "");
+
         return `
             <div style="background: ${color}; color: white; padding: 4px; border-radius: 3px; font-size: 0.75rem; margin-bottom: 4px; line-height: 1.2; cursor: pointer;" 
-                 onclick="window.openWorkoutModal(${ev.id}, '${ev.type}', '${ev.title.replace(/'/g, "\\'")}', ${ev.duration || "''"}, ${ev.tss || "''"}, '${safeDesc}')">
+                 data-desc="${safeDesc}"
+                 data-title="${safeTitle}"
+                 onclick="window.openWorkoutModal(this, ${ev.id}, '${ev.type}', ${ev.duration || "''"}, ${ev.tss || "''"})">
                 <strong>${ev.type}</strong>: ${ev.title}<br>
                 ${ev.distance ? ev.distance + 'km | ' : (ev.duration ? ev.duration + 'm | ' : '')} TSS: ${ev.tss != null ? ev.tss : '--'}
             </div>
@@ -177,16 +182,45 @@ export function initCalendarUI() {
         }
     };
 
-    window.openWorkoutModal = function (id, type, title, duration, tss, description) {
+    window.openWorkoutModal = function (element, id, type, duration, tss) {
+        // Decode the text safely back from the DOM element
+        const title = decodeURIComponent(element.getAttribute('data-title') || "");
+        const description = decodeURIComponent(element.getAttribute('data-desc') || "");
+
+        // 1. Populate the View Mode
+        const viewTitle = document.getElementById('view-wo-title-header');
+        if (viewTitle) viewTitle.textContent = title || "Workout Details";
+        document.getElementById('view-wo-type').textContent = type || "--";
+        document.getElementById('view-wo-duration').textContent = duration || "--";
+        document.getElementById('view-wo-tss').textContent = tss || "--";
+        document.getElementById('view-wo-desc').textContent = description || "No detailed sets provided.";
+
+        // 2. Populate the Edit Mode
         document.getElementById('edit-wo-id').value = id;
         document.getElementById('edit-wo-type').value = type;
         document.getElementById('edit-wo-title').value = title;
         document.getElementById('edit-wo-duration').value = duration;
         document.getElementById('edit-wo-tss').value = tss;
         document.getElementById('edit-wo-desc').value = description;
+
+        // 3. Reset UI to View Mode when opening
+        document.getElementById('workout-view-mode').style.display = 'block';
+        document.getElementById('workout-edit-form').style.display = 'none';
+
         const modal = document.getElementById('workout-modal');
         if (modal) modal.setAttribute('open', 'true');
     };
+
+    // --- View / Edit Mode Toggles ---
+    document.getElementById('toggle-edit-wo-btn')?.addEventListener('click', () => {
+        document.getElementById('workout-view-mode').style.display = 'none';
+        document.getElementById('workout-edit-form').style.display = 'block';
+    });
+
+    document.getElementById('cancel-edit-wo-btn')?.addEventListener('click', () => {
+        document.getElementById('workout-view-mode').style.display = 'block';
+        document.getElementById('workout-edit-form').style.display = 'none';
+    });
 
     // --- Navigation ---
     document.getElementById('prev-month')?.addEventListener('click', () => {

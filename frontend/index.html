@@ -353,13 +353,33 @@
     </dialog>
 
     <dialog id="workout-modal">
-        <article style="max-width: 600px;">
+        <article style="max-width: 600px; width: 100%;">
             <header>
                 <button aria-label="Close" rel="prev"
                     onclick="document.getElementById('workout-modal').removeAttribute('open')"></button>
-                <h2>Edit Scheduled Workout</h2>
+                <h2 id="view-wo-title-header">Workout Details</h2>
             </header>
-            <form id="workout-edit-form" style="margin-bottom: 0;">
+
+            <div id="workout-view-mode">
+                <div class="grid" style="margin-bottom: 1rem; color: var(--pico-muted-color);">
+                    <div><strong>Sport:</strong> <span id="view-wo-type"></span></div>
+                    <div><strong>Duration:</strong> <span id="view-wo-duration"></span> mins</div>
+                    <div><strong>TSS:</strong> <span id="view-wo-tss"></span></div>
+                </div>
+
+                <label style="font-weight: bold; margin-bottom: 0.5rem; display: block;">Planned Sets & Zones:</label>
+                <div id="view-wo-desc"
+                    style="background: var(--pico-form-element-background-color); padding: 1rem; border-radius: var(--pico-border-radius); white-space: pre-wrap; font-family: monospace; line-height: 1.5; min-height: 100px;">
+                </div>
+
+                <footer style="margin-top: 2rem;">
+                    <button type="button" class="secondary outline"
+                        onclick="document.getElementById('workout-modal').removeAttribute('open')">Close</button>
+                    <button type="button" id="toggle-edit-wo-btn">Edit Workout</button>
+                </footer>
+            </div>
+
+            <form id="workout-edit-form" style="display: none; margin-bottom: 0;">
                 <input type="hidden" id="edit-wo-id">
                 <div class="grid">
                     <label>Sport
@@ -382,8 +402,7 @@
                     <textarea id="edit-wo-desc" rows="6" placeholder="Warm-up, Main Set, Cool-down..."></textarea>
                 </label>
                 <footer>
-                    <button type="button" class="secondary outline"
-                        onclick="document.getElementById('workout-modal').removeAttribute('open')">Cancel</button>
+                    <button type="button" class="secondary outline" id="cancel-edit-wo-btn">Cancel</button>
                     <button type="button" class="outline" id="delete-wo-btn"
                         style="color: var(--pico-form-element-invalid-active-border-color); border-color: var(--pico-form-element-invalid-active-border-color);">Delete</button>
                     <button type="submit">Save Changes</button>
