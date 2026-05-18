@@ -30,13 +30,13 @@ export function buildNav(isLoggedIn) {
 
     if (isLoggedIn) {
         nav.innerHTML = `
-            <li><a href="#" data-action="dashboard">Dashboard</a></li>
-            <li><a href="#" data-action="calendar">Calendar</a></li>
-            <li><a href="#" data-action="analytics">Analytics</a></li>
-            <li><a href="#" data-action="pbs">Records</a></li> 
-            <li><a href="#" data-action="goals">Goals</a></li> 
-            <li><a href="#" data-action="settings">Settings</a></li>
-            <li><a href="#" data-action="logout" class="secondary">Logout</a></li>
+            <li><a href="#" data-action="dashboard">🏠 Dashboard</a></li>
+            <li><a href="#" data-action="calendar">📅 Calendar</a></li>
+            <li><a href="#" data-action="analytics">📈 Analytics</a></li>
+            <li><a href="#" data-action="pbs">🏆 Records</a></li> 
+            <li><a href="#" data-action="goals">🎯 Goals</a></li> 
+            <li><a href="#" data-action="settings">⚙️ Settings</a></li>
+            <li><a href="#" data-action="logout" class="secondary outline" style="padding: 0.5rem 1rem; border-radius: 20px;">Logout</a></li>
         `;
     } else {
         nav.innerHTML = `

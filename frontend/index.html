@@ -14,7 +14,7 @@
     <header class="container">
         <nav>
             <ul>
-                <li><strong>AI Tri-Coach</strong></li>
+                <li><strong>🏊‍♂️🚴‍♂️🏃‍♂️ AI Tri-Coach</strong></li>
             </ul>
             <ul id="nav-menu">
             </ul>
@@ -23,48 +23,61 @@
 
     <main class="container">
 
-        <section id="login-view" style="display: none; text-align: center; margin-top: 10vh;">
-            <h2>Welcome to AI Tri-Coach</h2>
-            <p>Your intelligent, data-driven triathlon coaching assistant.</p>
-            <a href="/api/auth/google/login" role="button">Login with Google</a>
+        <section id="login-view" style="display: none; text-align: center; margin-top: 15vh;">
+            <article style="max-width: 500px; margin: 0 auto; background: transparent; box-shadow: none;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Welcome to AI Tri-Coach</h2>
+                <p style="color: var(--pico-muted-color); font-size: 1.2rem; margin-bottom: 2rem;">Your intelligent,
+                    data-driven triathlon coaching assistant.</p>
+                <a href="/api/auth/google/login" role="button" class="contrast"
+                    style="font-size: 1.2rem; padding: 1rem 2rem;">Login with Google</a>
+            </article>
         </section>
 
         <section id="dashboard-view" style="display: none;">
-            <div class="grid">
-                <article>
-                    <header>Current Fitness (CTL)</header>
-                    <div id="fitness-summary">
-                        <h1 id="current-ctl" style="margin-bottom: 0;">--</h1>
-                        <p style="color: var(--pico-muted-color);">Fatigue (ATL): <span id="current-atl">--</span> |
-                            Form (TSB): <span id="current-tsb">--</span></p>
-                    </div>
-                </article>
-
-                <article>
-                    <header>Biological Baseline</header>
-                    <div id="baseline-summary">
-                        <p><strong>Estimated FTP:</strong> <span id="current-ftp"
-                                style="color: var(--pico-primary);">--</span></p>
-                        <p><strong>Threshold HR:</strong> <span id="current-lthr"
-                                style="color: var(--pico-primary);">--</span></p>
-                        <p style="font-size: 0.8rem; color: var(--pico-muted-color); margin-bottom: 0;">Calculated from
-                            20m peak power and sustained hard efforts.</p>
-                    </div>
-                </article>
+            <div class="flex-between" style="margin-bottom: 1rem;">
+                <h2>Overview</h2>
+                <button id="sync-strava-btn" class="outline secondary" style="width: auto; margin: 0;">🔄 Sync
+                    Strava</button>
             </div>
 
-            <button id="sync-strava-btn" class="outline">Fetch Latest Strava Data</button>
+            <div class="grid">
+                <div class="metric-card">
+                    <div class="metric-label" data-tooltip="Chronic Training Load: Your long-term fitness level.">
+                        Fitness (CTL)</div>
+                    <div id="current-ctl" class="metric-value">--</div>
+                    <div style="font-size: 0.9rem;">
+                        <span data-tooltip="Acute Training Load: Your recent fatigue."
+                            style="border-bottom: 1px dotted gray; cursor: help;">Fatigue: <span
+                                id="current-atl">--</span></span> |
+                        <span data-tooltip="Training Stress Balance: Your freshness (Fitness - Fatigue)."
+                            style="border-bottom: 1px dotted gray; cursor: help;">Form: <span
+                                id="current-tsb">--</span></span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Biological Baseline</div>
+                    <div style="margin-top: 1rem;">
+                        <h4 style="margin-bottom: 0.2rem;" data-tooltip="Functional Threshold Power">FTP: <span
+                                id="current-ftp" style="color: var(--pico-primary);">--</span></h4>
+                        <h4 data-tooltip="Lactate Threshold Heart Rate">LTHR: <span id="current-lthr"
+                                style="color: var(--pico-primary);">--</span></h4>
+                    </div>
+                    <small style="color: var(--pico-muted-color);">Auto-calculated from peak efforts.</small>
+                </div>
+            </div>
 
             <hr>
 
             <section id="chat-section">
-                <h3>Coach Chat</h3>
+                <h3>💬 AI Coach Chat</h3>
                 <div id="chat-box" class="chat-container">
-                    <p><em>Coach: Welcome back! How are we feeling today?</em></p>
+                    <p class="chat-message coach-msg">Welcome back! How is the body feeling today?</p>
                 </div>
                 <form id="chat-form">
                     <fieldset role="group">
-                        <input type="text" id="chat-input" placeholder="Ask your AI coach something..."
+                        <input type="text" id="chat-input"
+                            placeholder="Ask your AI coach for advice, session adjustments, or analysis..."
                             autocomplete="off">
                         <button type="submit">Send</button>
                     </fieldset>
@@ -73,43 +86,46 @@
         </section>
 
         <section id="pbs-view" style="display: none;">
-            <h2>Historical Efforts</h2>
-            <p>Filter your activities to track your progression across specific distances and power outputs.</p>
+            <h2>🏆 Historical Efforts</h2>
+            <p style="color: var(--pico-muted-color);">Filter your activities to track progression across specific
+                distances and power profiles.</p>
 
-            <div class="grid"
-                style="margin-bottom: 1rem; background: var(--pico-card-background-color); padding: 1rem; border-radius: 5px;">
-                <label>Sport
-                    <select id="records-sport">
-                        <option value="">-- Select Sport --</option>
-                    </select>
-                </label>
-                <label>Metric
-                    <select id="records-metric" disabled>
-                        <option value="">-- Select Metric --</option>
-                    </select>
-                </label>
-                <label>Sort By
-                    <select id="records-sort">
-                        <option value="date_desc">Newest First</option>
-                        <option value="date_asc">Oldest First</option>
-                        <option value="perf_best">Best Performance</option>
-                    </select>
-                </label>
-            </div>
+            <article style="padding: 1rem; margin-bottom: 2rem;">
+                <div class="grid">
+                    <label>Sport
+                        <select id="records-sport">
+                            <option value="">-- Select Sport --</option>
+                        </select>
+                    </label>
+                    <label>Metric
+                        <select id="records-metric" disabled>
+                            <option value="">-- Select Metric --</option>
+                        </select>
+                    </label>
+                    <label>Sort By
+                        <select id="records-sort">
+                            <option value="date_desc">Newest First</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="perf_best">Best Performance</option>
+                        </select>
+                    </label>
+                </div>
+            </article>
 
             <figure>
-                <table role="grid">
+                <table role="grid" class="striped">
                     <thead>
                         <tr>
                             <th scope="col">Date Achieved</th>
                             <th scope="col">Metric</th>
                             <th scope="col">Result</th>
-                            <th scope="col">Link</th>
+                            <th scope="col" style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="records-table-body">
                         <tr>
-                            <td colspan="4" style="text-align: center;">Select a sport and metric to view history.</td>
+                            <td colspan="4" style="text-align: center; color: var(--pico-muted-color); padding: 2rem;">
+                                Select a sport and metric to view history.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,223 +133,198 @@
         </section>
 
         <section id="analytics-view" style="display: none;">
-            <h2>Fitness / Fatigue / Form</h2>
-            <p>Your 6-month training load time-series.</p>
-            <figure>
-                <canvas id="fitnessChart" width="800" height="400"></canvas>
-            </figure>
+            <h2>📈 Performance Analytics</h2>
+            <p style="color: var(--pico-muted-color);">Your 6-month training load time-series.</p>
+            <article>
+                <figure>
+                    <canvas id="fitnessChart" width="800" height="400"></canvas>
+                </figure>
+            </article>
         </section>
 
         <section id="calendar-view" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2>Training Calendar</h2>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <input type="date" id="micro-week-start" style="margin-bottom: 0; padding: 0.2rem;"
-                        title="Select Monday of the week to generate">
-                    <button id="generate-week-btn" class="outline" style="margin-bottom: 0;">✨ Generate Week</button>
-
-                    <button id="prev-month" class="outline secondary"
-                        style="width: auto; margin-bottom: 0;">&larr;</button>
-                    <strong id="calendar-month-label" style="font-size: 1.2rem;">Month YYYY</strong>
-                    <button id="next-month" class="outline secondary"
-                        style="width: auto; margin-bottom: 0;">&rarr;</button>
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h2>📅 Training Calendar</h2>
+                <div class="flex-between gap-1">
+                    <button id="prev-month" class="outline secondary" style="width: auto; margin: 0;"
+                        aria-label="Previous Month">&larr;</button>
+                    <strong id="calendar-month-label"
+                        style="font-size: 1.2rem; min-width: 150px; text-align: center;">Month YYYY</strong>
+                    <button id="next-month" class="outline secondary" style="width: auto; margin: 0;"
+                        aria-label="Next Month">&rarr;</button>
                 </div>
             </div>
 
-            <details>
-                <summary role="button" class="secondary">Schedule New Workout</summary>
+            <article style="padding: 1rem; background: var(--pico-form-element-background-color);">
+                <div class="flex-between gap-1" style="flex-wrap: wrap;">
+                    <div style="flex-grow: 1;">
+                        <label for="micro-week-start"
+                            style="margin: 0; display: block; font-size: 0.8rem; color: var(--pico-muted-color);">Week
+                            Start (Monday)</label>
+                        <input type="date" id="micro-week-start" style="margin: 0;"
+                            title="Select Monday of the week to generate">
+                    </div>
+                    <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-top: auto;">
+                        <button id="generate-week-btn" style="margin: 0;">✨ AI Draft Week</button>
+                    </div>
+                </div>
+            </article>
+
+            <details style="margin-top: 1rem;">
+                <summary role="button" class="outline secondary">➕ Schedule Manual Workout</summary>
                 <article>
                     <form id="schedule-form">
                         <div class="grid">
                             <label>Date <input type="date" id="w-date" required></label>
                             <label>Sport
                                 <select id="w-type">
-                                    <option value="Run">Run</option>
-                                    <option value="Ride">Ride</option>
-                                    <option value="Swim">Swim</option>
-                                    <option value="Strength">Strength</option>
-                                    <option value="Mobility">Mobility</option>
-                                    <option value="Rest">Rest Day</option>
+                                    <option value="Run">🏃 Run</option>
+                                    <option value="Ride">🚴 Ride</option>
+                                    <option value="Swim">🏊 Swim</option>
+                                    <option value="Strength">🏋️ Strength</option>
+                                    <option value="Mobility">🧘 Mobility</option>
+                                    <option value="Rest">🛌 Rest Day</option>
                                 </select>
                             </label>
                         </div>
-                        <label>Title <input type="text" id="w-title" required></label>
+                        <label>Title <input type="text" id="w-title" placeholder="e.g., Threshold Intervals"
+                                required></label>
                         <div class="grid">
-                            <label>Duration (mins) <input type="number" id="w-duration"></label>
-                            <label>Planned TSS <input type="number" id="w-tss"></label>
+                            <label>Duration (mins) <input type="number" id="w-duration" placeholder="e.g., 60"></label>
+                            <label data-tooltip="Training Stress Score">Planned TSS <input type="number" id="w-tss"
+                                    placeholder="e.g., 50"></label>
                         </div>
                         <label>Description (Workout Structure)
-                            <textarea id="w-desc"></textarea>
+                            <textarea id="w-desc" placeholder="Warmup 15m... Main set 5x5m..."></textarea>
                         </label>
-                        <button type="submit">Save & Push to Intervals.icu</button>
+                        <button type="submit">Save & Sync to Intervals.icu</button>
                     </form>
                 </article>
             </details>
 
             <div id="calendar-grid"
-                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 2rem;">
+                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 1rem;">
             </div>
         </section>
 
         <section id="goals-view" style="display: none;">
-            <h2>Long Term Goals & Priorities <span id="goals-status-badge"
-                    style="display:none; font-size: 1rem; color: green; margin-left: 10px;">✅ Saved & Active</span></h2>
+            <div class="flex-between">
+                <h2>🎯 Long Term Goals</h2>
+                <span id="goals-status-badge" style="display:none; color: var(--pico-ins-color);">✅ Active</span>
+            </div>
 
-            <p>Define your primary targets so your AI coach can build periodized plans around them.</p>
-            <form id="goals-form">
-                <label>Primary "A" Race (or main goal)
-                    <input type="text" id="goal-arace" placeholder="e.g., Ironman Wales - Sept 15, 2026">
-                </label>
-                <label>Key Training Priorities
-                    <textarea id="goal-priorities" rows="4"
-                        placeholder="e.g., Improve my run off the bike, focus on hip mobility, strictly adhere to Zone 2 on long rides."></textarea>
-                </label>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button type="submit" style="width: auto; margin-bottom: 0;">Save Goals</button>
-                    <span id="goals-save-status" style="color: green;"></span>
-                </div>
-            </form>
+            <p style="color: var(--pico-muted-color);">Define your primary targets so your AI coach can build periodized
+                plans around them.</p>
 
-            <hr>
             <article>
-                <header>AI Macro Planner <span id="macro-status-badge"
-                        style="display:none; font-size: 0.9rem; color: green; float: right;">✅ Context Loaded</span>
-                </header>
-                <p>Generate a high-level periodized plan leading to your A-Race.</p>
-                <form id="macro-plan-form">
-                    <div class="grid">
-                        <label>Start Date (Upcoming Monday) <input type="date" id="macro-start" required></label>
-                        <label>A-Race / Target Date <input type="date" id="macro-target" required></label>
+                <form id="goals-form" style="margin-bottom: 0;">
+                    <label>Primary "A" Race (or main goal)
+                        <input type="text" id="goal-arace" placeholder="e.g., Ironman Wales - Sept 15, 2026">
+                    </label>
+                    <label>Key Training Priorities
+                        <textarea id="goal-priorities" rows="3"
+                            placeholder="e.g., Improve my run off the bike, strict adherence to Zone 2."></textarea>
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button type="submit" style="width: auto; margin: 0;">Save Goals</button>
+                        <span id="goals-save-status" style="color: var(--pico-ins-color);"></span>
                     </div>
-                    <button type="submit" id="macro-btn">Generate AI Macro Plan</button>
                 </form>
             </article>
 
-            <hr>
+            <h3 style="margin-top: 3rem;">🗺️ AI Macro Planner</h3>
+            <p style="color: var(--pico-muted-color);">Generate a high-level periodized plan leading to your A-Race.
+                <span id="macro-status-badge" style="display:none; color: var(--pico-ins-color);">✅ Context
+                    Loaded</span></p>
 
             <article>
-                <header>Current Macro Plan</header>
-                <figure>
-                    <table role="grid">
-                        <thead>
-                            <tr>
-                                <th>Week Start</th>
-                                <th>Phase</th>
-                                <th>Focus</th>
-                                <th>Target TSS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="macro-plan-body">
-                            <tr>
-                                <td colspan="4" style="text-align: center;">No plan generated yet.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </figure>
+                <form id="macro-plan-form" style="margin-bottom: 0;">
+                    <div class="grid">
+                        <label>Plan Start Date <input type="date" id="macro-start" required></label>
+                        <label>A-Race Date <input type="date" id="macro-target" required></label>
+                    </div>
+                    <button type="submit" id="macro-btn" class="secondary">Generate AI Macro Plan</button>
+                </form>
             </article>
+
+            <figure style="margin-top: 2rem;">
+                <table role="grid" class="striped">
+                    <thead>
+                        <tr>
+                            <th>Week Start</th>
+                            <th>Phase</th>
+                            <th>Focus</th>
+                            <th>Target TSS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="macro-plan-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--pico-muted-color); padding: 2rem;">
+                                No plan generated yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </figure>
         </section>
 
         <section id="settings-view" style="display: none;">
-            <h2>Settings</h2>
-            <p>Logged in as: <strong id="user-profile">Loading...</strong></p>
-            <hr>
-
-            <article>
-                <header>Integrations</header>
-                <p id="connection-status"></p>
-
-                <div class="grid">
-                    <div>
-                        <h4>Strava</h4>
-                        <p>Connect your account to sync activities automatically.</p>
-
-                        <div id="strava-unconnected">
-                            <a href="/api/auth/strava/login" role="button" class="secondary">Connect Strava</a>
-                        </div>
-
-                        <div id="strava-connected" style="display: none;">
-                            <p style="color: green;"><strong>✅ Connected</strong></p>
-                            <button id="disconnect-strava-btn" class="outline secondary">Disconnect</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h4>Intervals.icu</h4>
-                        <p>Enter your API key to sync wellness and calendar data.</p>
-
-                        <div id="intervals-unconnected">
-                            <form id="intervals-form">
-                                <fieldset role="group">
-                                    <input type="text" id="intervals-key" placeholder="API Key">
-                                    <button type="submit" class="outline">Save</button>
-                                </fieldset>
-                            </form>
-                        </div>
-
-                        <div id="intervals-connected" style="display: none;">
-                            <p style="color: green;"><strong>✅ Connected</strong></p>
-                            <button id="disconnect-intervals-btn" class="outline secondary">Disconnect</button>
-                        </div>
-                    </div>
-                </div>
+            <h2>⚙️ Settings</h2>
+            <article style="background: var(--pico-form-element-background-color);">
+                <p style="margin: 0;">Logged in as: <strong id="user-profile">Loading...</strong></p>
             </article>
 
-            <article>
-                <header>System Status</header>
-                <p>Backend API: <span id="api-status">Checking...</span></p>
-            </article>
+            <h3 style="margin-top: 2rem;">Integrations</h3>
+            <p id="connection-status"></p>
+
+            <div class="grid">
+                <article>
+                    <header><strong>Strava</strong></header>
+                    <p style="font-size: 0.9rem; color: var(--pico-muted-color);">Sync historical activities and
+                        power/pace metrics.</p>
+
+                    <div id="strava-unconnected">
+                        <a href="/api/auth/strava/login" role="button" class="outline">Connect Strava</a>
+                    </div>
+
+                    <div id="strava-connected" style="display: none;">
+                        <p style="color: var(--pico-ins-color); margin-bottom: 0.5rem;"><strong>✅ Connected</strong></p>
+                        <button id="disconnect-strava-btn" class="outline secondary"
+                            style="margin: 0;">Disconnect</button>
+                    </div>
+                </article>
+
+                <article>
+                    <header><strong>Intervals.icu</strong></header>
+                    <p style="font-size: 0.9rem; color: var(--pico-muted-color);">Push AI generated workouts to your
+                        calendar.</p>
+
+                    <div id="intervals-unconnected">
+                        <form id="intervals-form" style="margin: 0;">
+                            <fieldset role="group">
+                                <input type="text" id="intervals-key" placeholder="API Key">
+                                <button type="submit" class="outline">Save</button>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                    <div id="intervals-connected" style="display: none;">
+                        <p style="color: var(--pico-ins-color); margin-bottom: 0.5rem;"><strong>✅ Connected</strong></p>
+                        <button id="disconnect-intervals-btn" class="outline secondary"
+                            style="margin: 0;">Disconnect</button>
+                    </div>
+                </article>
+            </div>
+
+            <p style="margin-top: 2rem; color: var(--pico-muted-color); font-size: 0.9rem;">Backend API: <strong
+                    id="api-status">Checking...</strong></p>
         </section>
 
     </main>
 
     <dialog id="pb-modal">
-        <article>
-            <header>
-                <a href="#close" aria-label="Close" class="close"
-                    onclick="document.getElementById('pb-modal').removeAttribute('open')"></a>
-                Manual PB Override
-            </header>
-            <form id="pb-edit-form">
-                <input type="hidden" id="edit-pb-id">
-                <label>Time (Total Seconds OR Watts)
-                    <input type="number" id="edit-pb-time" required>
-                </label>
-                <label>Date Achieved
-                    <input type="date" id="edit-pb-date" required>
-                </label>
-                <label>Strava Activity ID (Optional)
-                    <input type="text" id="edit-pb-link">
-                </label>
-                <button type="submit">Save Record</button>
-            </form>
-        </article>
     </dialog>
 
     <dialog id="workout-modal">
-        <article>
-            <header>
-                <a href="#close" aria-label="Close" class="close"
-                    onclick="document.getElementById('workout-modal').removeAttribute('open')"></a>
-                Workout Details
-            </header>
-            <form id="workout-edit-form">
-                <input type="hidden" id="edit-wo-id">
-                <div class="grid">
-                    <label>Type <input type="text" id="edit-wo-type" required></label>
-                    <label>Title <input type="text" id="edit-wo-title" required></label>
-                </div>
-                <div class="grid">
-                    <label>Duration (min) <input type="number" id="edit-wo-duration"></label>
-                    <label>TSS <input type="number" id="edit-wo-tss"></label>
-                </div>
-                <label>Description
-                    <textarea id="edit-wo-desc" rows="6"></textarea>
-                </label>
-                <div class="grid">
-                    <button type="submit">Save Changes</button>
-                    <button type="button" class="secondary outline" id="delete-wo-btn">Delete Workout</button>
-                </div>
-            </form>
-        </article>
     </dialog>
 
     <script type="module" src="/static/js/app.js"></script>
