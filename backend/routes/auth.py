@@ -76,19 +76,34 @@ def google_callback(code: str = None, db: Session = Depends(get_db)):
     if not code:
         return RedirectResponse("/?error=google_denied")
 
-    token_res = requests.post("https://oauth2.googleapis.com/token", data={
+    # 1. Exchange the code for a token
+    token_response = requests.post("https://oauth2.googleapis.com/token", data={
         "client_id": os.getenv("GOOGLE_CLIENT_ID"),
         "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": f"{os.getenv('NEXT_PUBLIC_BASE_URL', 'http://localhost:8000')}/api/auth/google/callback"
-    }).json()
+    })
+    
+    token_res = token_response.json()
 
+    # 2. CHECK FOR ERRORS BEFORE PROCEEDING
+    if "access_token" not in token_res:
+        # Print the exact error to the backend terminal so you know how to fix it!
+        print("\n" + "="*50)
+        print("🚨 GOOGLE OAUTH ERROR 🚨")
+        print(f"Google responded with: {token_res}")
+        print("Check your .env variables and Authorized Redirect URIs in Google Cloud Console.")
+        print("="*50 + "\n")
+        return RedirectResponse("/?error=google_token_failed")
+
+    # 3. Fetch user profile from Google
     user_info_res = requests.get(
         "https://www.googleapis.com/oauth2/v2/userinfo",
         headers={"Authorization": f"Bearer {token_res['access_token']}"}
     ).json()
 
+    # 4. Database operations
     user = db.query(schema.User).filter(schema.User.email == user_info_res["email"]).first()
     if not user:
         user = schema.User(
@@ -100,11 +115,14 @@ def google_callback(code: str = None, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
+    # 5. Generate your local JWT
     payload = {
         "sub": str(user.id),
         "exp": datetime.now(timezone.utc) + timedelta(days=30)
     }
-    jwt_token = jwt.encode(payload, os.getenv("JWT_SECRET"), algorithm="HS256")
+    # Ensure JWT_SECRET has a fallback if missing, to prevent another potential crash
+    jwt_secret = os.getenv("JWT_SECRET", "super-secret-fallback-key-change-in-production")
+    jwt_token = jwt.encode(payload, jwt_secret, algorithm="HS256")
 
     return RedirectResponse(f"/?token={jwt_token}")
 
