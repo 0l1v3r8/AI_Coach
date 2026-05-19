@@ -31,7 +31,7 @@ export async function loadDashboardData() {
 
             if (ftpNode) ftpNode.textContent = data.baseline.ftp ? `${data.baseline.ftp} W` : '-- W';
             if (lthrNode) lthrNode.textContent = data.baseline.lthr ? `${data.baseline.lthr} bpm` : '-- bpm';
-            if (maxHrNode) maxHrNode.textContent = data.baseline.maxHr ? `${data.baseline.maxHr} bpm` : '-- bpm'; // <-- ADD THIS
+            if (maxHrNode) maxHrNode.textContent = data.baseline.maxHr ? `${data.baseline.maxHr} bpm` : '-- bpm'; //
         }
     } catch (err) {
         console.error("Error loading dashboard numbers:", err);
@@ -133,6 +133,46 @@ export function initDashboardUI() {
                 }
             } catch (err) {
                 console.error("Intervals saving failed:", err);
+            }
+        });
+    }
+
+    const userSettingsForm = document.getElementById('user-settings-form');
+    if (userSettingsForm) {
+        userSettingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.setAttribute('aria-busy', 'true');
+            btn.textContent = "Saving...";
+
+            // Grab the value from the new input
+            const payload = {
+                baselineLookbackWeeks: parseInt(document.getElementById('settings-baseline-weeks').value) || 12
+            };
+
+            try {
+                // Send the PUT request to the backend route we made earlier
+                await fetchAPI('/api/users/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                // Show a success message
+                const status = document.getElementById('settings-save-status');
+                if (status) {
+                    status.innerHTML = "<strong>✅ Saved!</strong>";
+                    setTimeout(() => { status.innerHTML = ""; }, 3000);
+                }
+
+                // Reload the dashboard numbers in the background to reflect the new timeframe immediately
+                await loadDashboardData();
+            } catch (err) {
+                console.error("Failed to save settings:", err);
+                alert("Failed to save settings. Please ensure your backend is running.");
+            } finally {
+                btn.setAttribute('aria-busy', 'false');
+                btn.textContent = "Save Settings";
             }
         });
     }

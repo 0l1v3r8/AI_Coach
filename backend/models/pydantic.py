@@ -37,3 +37,13 @@ class WeeklyPlanUpdate(BaseModel):
     phase: str
     focus: str
     targetTss: int
+
+class UserSettingsUpdate(BaseModel):
+    autoGeneratePlans: Optional[bool] = None
+    distanceUnit: Optional[str] = None
+    intervalsApiKey: Optional[str] = None
+    baselineLookbackWeeks: Optional[int] = None
+    ftp: Optional[float] = None
+    lthr: Optional[float] = None
+    maxHr: Optional[int] = None
+    chatModel: Optional[str] = None

@@ -318,7 +318,24 @@
                     </div>
                 </article>
             </div>
-
+            <h3 style="margin-top: 2rem;">User Preferences</h3>
+            <article>
+                <form id="user-settings-form" style="margin-bottom: 0;">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="settings-baseline-weeks">Baseline Lookback Period (Weeks)</label>
+                        <input type="number" id="settings-baseline-weeks" name="baselineLookbackWeeks" min="1" max="104"
+                            value="12">
+                        <small style="color: var(--pico-muted-color);">
+                            Only activities within this timeframe will be used to auto-calculate your current FTP, LTHR,
+                            and Max HR.
+                        </small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button type="submit" style="width: auto; margin: 0;">Save Settings</button>
+                        <span id="settings-save-status" style="color: var(--pico-ins-color);"></span>
+                    </div>
+                </form>
+            </article>
             <p style="margin-top: 2rem; color: var(--pico-muted-color); font-size: 0.9rem;">Backend API: <strong
                     id="api-status">Checking...</strong></p>
         </section>

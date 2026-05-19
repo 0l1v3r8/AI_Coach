@@ -26,7 +26,8 @@ class User(Base):
     chatModel = Column(String, default="gemini-1.5-flash")
     aRace = Column(String, nullable=True)               # Primary A-Race
     trainingPriorities = Column(String, nullable=True)  # General focus/goals
-    
+    baselineLookbackWeeks = Column(Integer, default=12) # How many weeks of data to use for baseline calculations
+
     # FIXED: Use lambda for dynamic timestamps
     createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updatedAt = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

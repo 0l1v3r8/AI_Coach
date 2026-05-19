@@ -2,14 +2,26 @@ from datetime import datetime, timedelta
 import math
 from backend.models import schema
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta, timezone # Ensure timedelta and timezone are imported
+from backend.models import schema
+from sqlalchemy.orm import Session
 
 def calculate_biological_baseline(db: Session, user_id: int):
-    """Estimates FTP, LTHR, and Max HR from high-fidelity stream data."""
+    """Estimates FTP, LTHR, and Max HR from high-fidelity stream data within a configurable timeframe."""
     
-    # 1. Estimate FTP (95% of highest ever 20-minute peak power)
+    user = db.query(schema.User).filter(schema.User.id == user_id).first()
+    if not user:
+        return {"ftp": None, "lthr": None, "maxHr": None}
+        
+    # Calculate the cutoff date based on user settings (default to 12 weeks if not set)
+    lookback_weeks = user.baselineLookbackWeeks if user.baselineLookbackWeeks is not None else 12
+    cutoff_date = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
+    
+    # 1. Estimate FTP (95% of highest 20-minute peak power within timeframe)
     pb_20m = db.query(schema.ActivityEffort).filter(
         schema.ActivityEffort.userId == user_id, 
-        schema.ActivityEffort.distanceName == "20m Power"
+        schema.ActivityEffort.distanceName == "20m Power",
+        schema.ActivityEffort.date >= cutoff_date  # <-- NEW FILTER
     ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
     
     ftp = int(pb_20m.timeSeconds * 0.95) if pb_20m else None
@@ -17,7 +29,8 @@ def calculate_biological_baseline(db: Session, user_id: int):
     # 2. Estimate LTHR (Using the precise Peak 20m HR extracted from streams)
     peak_20m_hr_effort = db.query(schema.ActivityEffort).filter(
         schema.ActivityEffort.userId == user_id,
-        schema.ActivityEffort.distanceName == "Peak 20m HR"
+        schema.ActivityEffort.distanceName == "Peak 20m HR",
+        schema.ActivityEffort.date >= cutoff_date  # <-- NEW FILTER
     ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
     
     lthr = int(peak_20m_hr_effort.timeSeconds) if peak_20m_hr_effort else None
@@ -25,18 +38,17 @@ def calculate_biological_baseline(db: Session, user_id: int):
     # 3. Estimate Max HR (Using the highest 15-second HR burst)
     max_hr_effort = db.query(schema.ActivityEffort).filter(
         schema.ActivityEffort.userId == user_id,
-        schema.ActivityEffort.distanceName == "Max HR"
+        schema.ActivityEffort.distanceName == "Max HR",
+        schema.ActivityEffort.date >= cutoff_date  # <-- NEW FILTER
     ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
     
     max_hr = int(max_hr_effort.timeSeconds) if max_hr_effort else None
 
     # Save to user profile
-    user = db.query(schema.User).filter(schema.User.id == user_id).first()
-    if user:
-        if ftp: user.ftp = ftp
-        if lthr: user.lthr = lthr
-        if max_hr: user.maxHr = max_hr
-        db.commit()
+    if ftp: user.ftp = ftp
+    if lthr: user.lthr = lthr
+    if max_hr: user.maxHr = max_hr
+    db.commit()
 
     return {"ftp": ftp, "lthr": lthr, "maxHr": max_hr}
 

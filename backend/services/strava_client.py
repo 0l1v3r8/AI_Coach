@@ -136,6 +136,10 @@ def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activ
                 # Extract HR Profile (Cycling, Running, Other Cardio)
                 hr_data = next((stream["data"] for stream in streams_data if stream.get("type") == "heartrate"), None)
                 if hr_data:
+                    max_hr = calculate_peak_power_from_stream(hr_data, 15) #Max HR is the highest 15-second burst in the activity
+                    if max_hr:
+                        save_activity_effort(db, user_id, act.stravaId, act.type, "Max HR", max_hr, act.startDate)
+                        
                     peak_20m_hr = calculate_peak_power_from_stream(hr_data, 1200) # 20 mins
                     if peak_20m_hr:
                         save_activity_effort(db, user_id, act.stravaId, act.type, "Peak 20m HR", peak_20m_hr, act.startDate)
