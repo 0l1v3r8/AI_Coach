@@ -4,37 +4,41 @@ from backend.models import schema
 from sqlalchemy.orm import Session
 
 def calculate_biological_baseline(db: Session, user_id: int):
-    """Estimates FTP and LTHR from historical Strava data."""
+    """Estimates FTP, LTHR, and Max HR from high-fidelity stream data."""
     
-    # 1. Estimate FTP (95% of 20-minute peak power)
-    # Note: We saved watts in the 'timeSeconds' column for power metrics
     # 1. Estimate FTP (95% of highest ever 20-minute peak power)
     pb_20m = db.query(schema.ActivityEffort).filter(
         schema.ActivityEffort.userId == user_id, 
         schema.ActivityEffort.distanceName == "20m Power"
-    ).order_by(schema.ActivityEffort.timeSeconds.desc()).first() # desc() to get the highest wattage
+    ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
     
     ftp = int(pb_20m.timeSeconds * 0.95) if pb_20m else None
 
-    # 2. Estimate LTHR (Highest Average HR from a hard 20-60 min effort)
-    # We look for runs between 20 and 60 minutes with the highest average HR
-    hard_efforts = db.query(schema.Activity).filter(
-        schema.Activity.userId == user_id,
-        schema.Activity.duration >= 1200, # 20 mins
-        schema.Activity.duration <= 3600, # 60 mins
-        schema.Activity.avgHr != None
-    ).order_by(schema.Activity.avgHr.desc()).first()
+    # 2. Estimate LTHR (Using the precise Peak 20m HR extracted from streams)
+    peak_20m_hr_effort = db.query(schema.ActivityEffort).filter(
+        schema.ActivityEffort.userId == user_id,
+        schema.ActivityEffort.distanceName == "Peak 20m HR"
+    ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
+    
+    lthr = int(peak_20m_hr_effort.timeSeconds) if peak_20m_hr_effort else None
 
-    lthr = int(hard_efforts.avgHr) if hard_efforts else None
+    # 3. Estimate Max HR (Using the highest 15-second HR burst)
+    max_hr_effort = db.query(schema.ActivityEffort).filter(
+        schema.ActivityEffort.userId == user_id,
+        schema.ActivityEffort.distanceName == "Max HR"
+    ).order_by(schema.ActivityEffort.timeSeconds.desc()).first()
+    
+    max_hr = int(max_hr_effort.timeSeconds) if max_hr_effort else None
 
     # Save to user profile
     user = db.query(schema.User).filter(schema.User.id == user_id).first()
     if user:
         if ftp: user.ftp = ftp
         if lthr: user.lthr = lthr
+        if max_hr: user.maxHr = max_hr
         db.commit()
 
-    return {"ftp": ftp, "lthr": lthr}
+    return {"ftp": ftp, "lthr": lthr, "maxHr": max_hr}
 
 def calculate_fitness_fatigue(activities, start_date=None, end_date=None):
     """

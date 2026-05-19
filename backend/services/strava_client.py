@@ -102,9 +102,20 @@ def save_activity_effort(db: Session, user_id: int, activity_id: str, sport: str
 def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activity, access_token: str) -> Optional[int]:
     headers = {"Authorization": f"Bearer {access_token}"}
     
-    # 1. CYCLING POWER PROFILE EXTRACTION
+    # Fast exit for activities that require no stream or lap analysis
+    if act.type in ["Strength", "Mobility"]:
+        return 200
+
+    # 1. TARGETED STREAM EXTRACTION (Power & HR)
+    keys_to_fetch = []
     if act.type == "Ride":
-        streams_url = "https://www.strava.com" + f"/api/v3/activities/{act.stravaId}/streams?keys=watts&series_type=time"
+        keys_to_fetch = ["watts", "heartrate"]
+    elif act.type in ["Run", "OtherCardio"]:
+        keys_to_fetch = ["heartrate"]
+        
+    if keys_to_fetch:
+        keys_str = ",".join(keys_to_fetch)
+        streams_url = f"https://www.strava.com/api/v3/activities/{act.stravaId}/streams?keys={keys_str}&series_type=time"
         stream_res = requests.get(streams_url, headers=headers)
         
         if stream_res.status_code == 401: return 401 
@@ -112,29 +123,42 @@ def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activ
         if stream_res.status_code == 200:
             streams_data = stream_res.json()
             if isinstance(streams_data, list):
-                watts_data = next((stream["data"] for stream in streams_data if stream.get("type") == "watts"), None)
-                if watts_data:
-                    for label, secs in CYCLING_POWER_DURATIONS.items():
-                        peak_wattage = calculate_peak_power_from_stream(watts_data, secs)
-                        if peak_wattage:
-                            save_activity_effort(db, user_id, act.stravaId, "Ride", label, peak_wattage, act.startDate)
+                
+                # Extract Power Profile (Cycling Only)
+                if act.type == "Ride":
+                    watts_data = next((stream["data"] for stream in streams_data if stream.get("type") == "watts"), None)
+                    if watts_data:
+                        for label, secs in CYCLING_POWER_DURATIONS.items():
+                            peak_wattage = calculate_peak_power_from_stream(watts_data, secs)
+                            if peak_wattage:
+                                save_activity_effort(db, user_id, act.stravaId, act.type, label, peak_wattage, act.startDate)
+                
+                # Extract HR Profile (Cycling, Running, Other Cardio)
+                hr_data = next((stream["data"] for stream in streams_data if stream.get("type") == "heartrate"), None)
+                if hr_data:
+                    peak_20m_hr = calculate_peak_power_from_stream(hr_data, 1200) # 20 mins
+                    if peak_20m_hr:
+                        save_activity_effort(db, user_id, act.stravaId, act.type, "Peak 20m HR", peak_20m_hr, act.startDate)
+        
         time.sleep(1.0)
 
-    # 2. CLASSIC TIME-FOR-DISTANCE EXTRACTION
-    targets = SPORT_BENCHMARKS.get(act.type)
-    if targets:
-        laps_url = "https://www.strava.com" + f"/api/v3/activities/{act.stravaId}/laps"
-        laps_res = requests.get(laps_url, headers=headers)
-        
-        if laps_res.status_code == 401: return 401
+    # 2. CLASSIC TIME-FOR-DISTANCE EXTRACTION (Cycling, Running, Swimming)
+    if act.type in ["Ride", "Run", "Swim"]:
+        targets = SPORT_BENCHMARKS.get(act.type)
+        if targets:
+            laps_url = f"https://www.strava.com/api/v3/activities/{act.stravaId}/laps"
+            laps_res = requests.get(laps_url, headers=headers)
             
-        if laps_res.status_code == 200:
-            laps_data = laps_res.json()
-            if isinstance(laps_data, list):
-                for name, target_meters in targets.items():
-                    calculated_time = calculate_pb_from_laps(laps_data, target_meters)
-                    if calculated_time:
-                        save_activity_effort(db, user_id, act.stravaId, act.type, name, calculated_time, act.startDate)
+            if laps_res.status_code == 401: return 401
+                
+            if laps_res.status_code == 200:
+                laps_data = laps_res.json()
+                if isinstance(laps_data, list):
+                    for name, target_meters in targets.items():
+                        calculated_time = calculate_pb_from_laps(laps_data, target_meters)
+                        if calculated_time:
+                            save_activity_effort(db, user_id, act.stravaId, act.type, name, calculated_time, act.startDate)
+    
     return 200
 
 # --- BACKGROUND WORKER ---
