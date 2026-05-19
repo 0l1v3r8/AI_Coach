@@ -27,8 +27,11 @@ export async function loadDashboardData() {
         if (data.baseline) {
             const ftpNode = document.getElementById('current-ftp');
             const lthrNode = document.getElementById('current-lthr');
+            const maxHrNode = document.getElementById('current-maxhr'); // <-- ADD THIS
+
             if (ftpNode) ftpNode.textContent = data.baseline.ftp ? `${data.baseline.ftp} W` : '-- W';
             if (lthrNode) lthrNode.textContent = data.baseline.lthr ? `${data.baseline.lthr} bpm` : '-- bpm';
+            if (maxHrNode) maxHrNode.textContent = data.baseline.maxHr ? `${data.baseline.maxHr} bpm` : '-- bpm'; // <-- ADD THIS
         }
     } catch (err) {
         console.error("Error loading dashboard numbers:", err);

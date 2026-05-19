@@ -70,9 +70,12 @@ def get_calendar_data(db: Session = Depends(get_db), user: schema.User = Depends
             "title": w.title,
             "type": w.type,
             "distance": w.distance,
-            "tss": round(w.trainingLoad, 1) if w.trainingLoad is not None else None
+            "duration": w.duration,
+            "tss": round(w.trainingLoad, 1) if w.trainingLoad is not None else None,
+            "description": w.description 
         })
         
+
     return {"events": calendar_events}
 
 @router.get("/records")
@@ -82,6 +85,10 @@ def get_all_records(db: Session = Depends(get_db), user: schema.User = Depends(g
     
     results = {}
     for eff in efforts:
+        # Skip heart rate metrics so they don't show up in the PB view
+        if "HR" in eff.distanceName:
+            continue
+
         if eff.sportType not in results: results[eff.sportType] = {}
         if eff.distanceName not in results[eff.sportType]: results[eff.sportType][eff.distanceName] = []
         

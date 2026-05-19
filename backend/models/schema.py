@@ -20,7 +20,8 @@ class User(Base):
     distanceUnit = Column(String, default="metric")
     intervalsApiKey = Column(String, nullable=True)
     ftp = Column(Float, nullable=True)
-    lthr = Column(Float, nullable=True)                 # Lactate Threshold Heart Rate
+    lthr = Column(Float, nullable=True)
+    maxHr = Column(Integer, nullable=True)                 # Lactate Threshold Heart Rate
     thresholdPace = Column(String, nullable=True)
     chatModel = Column(String, default="gemini-1.5-flash")
     aRace = Column(String, nullable=True)               # Primary A-Race
