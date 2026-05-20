@@ -43,12 +43,13 @@ def generate_macro_plan(req: MacroPlanRequest, db: Session = Depends(get_db), us
     chart_data = calculate_fitness_fatigue(activities)
     
     curves = get_performance_curves(db, user.id, user.baselineLookbackWeeks or 12)
-
+    current_ctl = chart_data[-1]["fitness"] if chart_data else 0.0
+    current_atl = chart_data[-1]["fatigue"] if chart_data else 0.0
     athlete_context = {
         "ftp": baseline["ftp"],
         "lthr": baseline["lthr"],
-        "fitness": current_ctl, # or chart_data[-1]["fitness"] depending on the route
-        "fatigue": current_atl, # or chart_data[-1]["fatigue"]
+        "fitness": current_ctl, 
+        "fatigue": current_atl,
         "power_curve": curves["power"],
         "hr_curve_run": curves["hr_run"],
         "hr_curve_ride": curves["hr_ride"]

@@ -26,15 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         targetView = 'settings-view';
     }
 
-    const user = await fetchAPI('/api/users/me');
-
-
-    // Populate Settings
-    const baselineInput = document.getElementById('settings-baseline-weeks');
-    if (baselineInput && user.baselineLookbackWeeks) {
-        baselineInput.value = user.baselineLookbackWeeks;
-        baselineInput.defaultValue = user.baselineLookbackWeeks; // Sets the baseline for the fallback
-    }
+    
     // --- 2. INITIALIZE ALL UI LISTENERS ---
     initDashboardUI();
     initRecordsUI();
@@ -50,6 +42,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const userProfile = document.getElementById('user-profile');
             if (userProfile) userProfile.textContent = `${user.name} (${user.email})`;
+
+
+            // Populate Settings
+            const baselineInput = document.getElementById('settings-baseline-weeks');
+            if (baselineInput && user.baselineLookbackWeeks) {
+                baselineInput.value = user.baselineLookbackWeeks;
+                baselineInput.defaultValue = user.baselineLookbackWeeks; // Sets the baseline for the fallback
+            }
 
             // Populate Goals
             const goalARace = document.getElementById('goal-arace');

@@ -41,7 +41,6 @@ export async function loadDashboardData() {
 /**
  * Fetches timeseries data and renders the Chart.js graph
  */
-let fitnessChartInstance = null;
 let curveChartInstance = null;
 let curveData = null; // Cache to prevent re-fetching
 
