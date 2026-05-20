@@ -41,15 +41,21 @@ export async function loadDashboardData() {
 /**
  * Fetches timeseries data and renders the Chart.js graph
  */
+let fitnessChartInstance = null;
+let curveChartInstance = null;
+let curveData = null; // Cache to prevent re-fetching
+
 export async function loadAnalyticsChart() {
+    // Render Fitness chart by default
+    document.getElementById('chart-type-selector').value = "fitness";
+    toggleChartVisibility("fitness");
+    
     try {
         const data = await fetchAPI('/api/analytics/timeseries');
         const ctx = document.getElementById('fitnessChart');
         if (!ctx) return;
 
         if (fitnessChartInstance) fitnessChartInstance.destroy();
-
-        // Chart is loaded globally via CDN in index.html
         fitnessChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
@@ -60,14 +66,84 @@ export async function loadAnalyticsChart() {
                     { label: 'Form (TSB)', data: data.form, backgroundColor: 'rgba(0, 200, 0, 0.2)', type: 'bar' }
                 ]
             },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } }
-            }
+            options: { responsive: true }
         });
+        
+        // Setup dropdown listener (prevent multiple bindings)
+        const selector = document.getElementById('chart-type-selector');
+        selector.removeEventListener('change', handleChartChange);
+        selector.addEventListener('change', handleChartChange);
+        
     } catch (err) {
         console.error("Error loading analytics:", err);
     }
+}
+
+async function handleChartChange(e) {
+    const type = e.target.value;
+    toggleChartVisibility(type);
+
+    if (type === 'fitness') return; // Already rendered
+    
+    // Fetch curve data once and cache it
+    if (!curveData) {
+        curveData = await fetchAPI('/api/analytics/curves');
+    }
+    
+    renderCurveChart(type);
+}
+
+function toggleChartVisibility(type) {
+    document.getElementById('fitnessChart').style.display = (type === 'fitness') ? 'block' : 'none';
+    document.getElementById('curveChart').style.display = (type !== 'fitness') ? 'block' : 'none';
+    
+    const desc = document.getElementById('analytics-desc');
+    if (type === 'fitness') desc.textContent = "Your 6-month training load time-series.";
+    else desc.textContent = "Your peak efforts over your defined Baseline Lookback Period.";
+}
+
+function renderCurveChart(type) {
+    const ctx = document.getElementById('curveChart');
+    if (curveChartInstance) curveChartInstance.destroy();
+
+    let chartLabels, chartValues, chartTitle, color;
+    
+    if (type === 'power-ride') {
+        chartLabels = curveData.power.labels;
+        chartValues = curveData.power.data;
+        chartTitle = 'Peak Power Output (Watts)';
+        color = 'purple';
+    } else if (type === 'hr-run') {
+        chartLabels = curveData.hr_run.labels;
+        chartValues = curveData.hr_run.data;
+        chartTitle = 'Peak HR - Run (BPM)';
+        color = '#e67e22';
+    } else if (type === 'hr-ride') {
+        chartLabels = curveData.hr_ride.labels;
+        chartValues = curveData.hr_ride.data;
+        chartTitle = 'Peak HR - Ride (BPM)';
+        color = '#3498db';
+    }
+
+    curveChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: chartTitle,
+                data: chartValues,
+                borderColor: color,
+                backgroundColor: color,
+                tension: 0.3,
+                fill: false,
+                spanGaps: true // Connects line if some durations are missing
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: false } }
+        }
+    });
 }
 
 /**
@@ -147,6 +223,7 @@ export function initDashboardUI() {
             btn.textContent = "Saving...";
 
             // Grab the value from the new input
+            // Default value is the users current saved value
             const payload = {
                 baselineLookbackWeeks: parseInt(document.getElementById('settings-baseline-weeks').value) || 12
             };

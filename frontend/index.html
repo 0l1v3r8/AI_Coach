@@ -135,14 +135,23 @@
         </section>
 
         <section id="analytics-view" style="display: none;">
-            <h2>📈 Performance Analytics</h2>
-            <p style="color: var(--pico-muted-color);">Your 6-month training load time-series.</p>
-            <article>
-                <figure>
-                    <canvas id="fitnessChart" width="800" height="400"></canvas>
-                </figure>
-            </article>
-        </section>
+    <div class="flex-between">
+        <h2>📈 Performance Analytics</h2>
+        <select id="chart-type-selector" style="width: auto; margin-bottom: 0;">
+            <option value="fitness">Fitness / Fatigue (Time)</option>
+            <option value="power-ride">Power Curve (Ride)</option>
+            <option value="hr-run">Heart Rate Curve (Run)</option>
+            <option value="hr-ride">Heart Rate Curve (Ride)</option>
+        </select>
+    </div>
+    <p style="color: var(--pico-muted-color);" id="analytics-desc">Your 6-month training load time-series.</p>
+    <article>
+        <figure>
+            <canvas id="fitnessChart" width="800" height="400"></canvas>
+            <canvas id="curveChart" width="800" height="400" style="display: none;"></canvas>
+        </figure>
+    </article>
+</section>
 
         <section id="calendar-view" style="display: none;">
             <div class="flex-between" style="margin-bottom: 1.5rem;">

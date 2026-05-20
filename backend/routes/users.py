@@ -32,7 +32,8 @@ def read_current_user(user: schema.User = Depends(get_current_user)):
         "aRace": user.aRace,
         "trainingPriorities": user.trainingPriorities,
         "stravaConnected": user.stravaAccessToken is not None,
-        "intervalsConnected": user.intervalsApiKey is not None
+        "intervalsConnected": user.intervalsApiKey is not None,
+        "baselineLookbackWeeks": user.baselineLookbackWeeks # <-- Add this line
     }
 
 @router.post("/strava/disconnect")

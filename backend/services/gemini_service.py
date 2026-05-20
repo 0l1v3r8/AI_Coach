@@ -13,14 +13,14 @@ def generate_macro_plan(athlete_profile: str, a_race: str, priorities: str, athl
     prompt = f"""
     You are an elite triathlon coach. Create a {weeks_to_race}-week high-level macro plan leading up to the athlete's A-Race.
     
-    Athlete Profile: {athlete_profile}
-    A-Race/Main Goal: {a_race}
-    Key Training Priorities: {priorities}
-    
-    Current Biological Baseline:
+    Biological Baseline:
     - FTP: {athlete_context.get('ftp', 'Unknown')} W
     - LTHR: {athlete_context.get('lthr', 'Unknown')} bpm
     - Current Fitness (CTL): {athlete_context.get('fitness', 0)}
+    - Current Fatigue (ATL): {athlete_context.get('fatigue', 0)}
+    - Peak Power Curve (Watts): {athlete_context.get('power_curve', 'Unknown')}
+    - Peak HR Curve - Run (BPM): {athlete_context.get('hr_curve_run', 'Unknown')}
+    - Peak HR Curve - Ride (BPM): {athlete_context.get('hr_curve_ride', 'Unknown')}
     
     Requirements:
     - Apply progressive overload (building TSS).
@@ -61,6 +61,9 @@ def generate_micro_plan(athlete_context: dict, macro_week_focus: str, macro_week
     - LTHR: {athlete_context.get('lthr', 'Unknown')} bpm
     - Current Fitness (CTL): {athlete_context.get('fitness', 0)}
     - Current Fatigue (ATL): {athlete_context.get('fatigue', 0)}
+    - Peak Power Curve (Watts): {athlete_context.get('power_curve', 'Unknown')}
+    - Peak HR Curve - Run (BPM): {athlete_context.get('hr_curve_run', 'Unknown')}
+    - Peak HR Curve - Ride (BPM): {athlete_context.get('hr_curve_ride', 'Unknown')}
     
     This Week's Goal:
     - Phase/Focus: {macro_week_focus}

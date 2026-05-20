@@ -35,6 +35,19 @@ MINIMUM_PB_DISTANCES_KM = {
     "Run": 1.0, "Ride": 5.0, "Swim": 0.1
 }
 
+
+# --- ADD/UPDATE THESE CONSTANTS AT THE TOP ---
+CYCLING_POWER_DURATIONS = {
+    "5s Power": 5, "15s Power": 15, "30s Power": 30,
+    "1m Power": 60, "5m Power": 300, "10m Power": 600,
+    "20m Power": 1200, "60m Power": 3600, "90m Power":5400,"120m Power": 7200
+}
+
+HR_DURATIONS = {
+    "15s HR": 15, "1m HR": 60, "5m HR": 300,
+    "10m HR": 600, "20m HR": 1200, "60m HR": 3600, "90m HR":5400,"120m HR": 7200
+}
+
 # --- AUTHENTICATION ---
 def refresh_strava_token(user: schema.User, db: Session) -> str:
     url = "https://www.strava.com" + "/oauth/token"
@@ -102,16 +115,11 @@ def save_activity_effort(db: Session, user_id: int, activity_id: str, sport: str
 def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activity, access_token: str) -> Optional[int]:
     headers = {"Authorization": f"Bearer {access_token}"}
     
-    # Fast exit for activities that require no stream or lap analysis
-    if act.type in ["Strength", "Mobility"]:
-        return 200
+    if act.type in ["Strength", "Mobility"]: return 200
 
-    # 1. TARGETED STREAM EXTRACTION (Power & HR)
     keys_to_fetch = []
-    if act.type == "Ride":
-        keys_to_fetch = ["watts", "heartrate"]
-    elif act.type in ["Run", "OtherCardio"]:
-        keys_to_fetch = ["heartrate"]
+    if act.type == "Ride": keys_to_fetch = ["watts", "heartrate"]
+    elif act.type in ["Run", "OtherCardio"]: keys_to_fetch = ["heartrate"]
         
     if keys_to_fetch:
         keys_str = ",".join(keys_to_fetch)
@@ -124,7 +132,7 @@ def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activ
             streams_data = stream_res.json()
             if isinstance(streams_data, list):
                 
-                # Extract Power Profile (Cycling Only)
+                # --- UPDATE: Power Profile ---
                 if act.type == "Ride":
                     watts_data = next((stream["data"] for stream in streams_data if stream.get("type") == "watts"), None)
                     if watts_data:
@@ -133,17 +141,21 @@ def parse_and_save_activity_metrics(db: Session, user_id: int, act: schema.Activ
                             if peak_wattage:
                                 save_activity_effort(db, user_id, act.stravaId, act.type, label, peak_wattage, act.startDate)
                 
-                # Extract HR Profile (Cycling, Running, Other Cardio)
+                # --- UPDATE: HR Profile ---
                 hr_data = next((stream["data"] for stream in streams_data if stream.get("type") == "heartrate"), None)
                 if hr_data:
-                    max_hr = calculate_peak_power_from_stream(hr_data, 15) #Max HR is the highest 15-second burst in the activity
-                    if max_hr:
-                        save_activity_effort(db, user_id, act.stravaId, act.type, "Max HR", max_hr, act.startDate)
+                    # Keep legacy labels for biological baseline logic
+                    max_hr = calculate_peak_power_from_stream(hr_data, 15)
+                    if max_hr: save_activity_effort(db, user_id, act.stravaId, act.type, "Max HR", max_hr, act.startDate)
                         
-                    peak_20m_hr = calculate_peak_power_from_stream(hr_data, 1200) # 20 mins
-                    if peak_20m_hr:
-                        save_activity_effort(db, user_id, act.stravaId, act.type, "Peak 20m HR", peak_20m_hr, act.startDate)
-        
+                    peak_20m_hr = calculate_peak_power_from_stream(hr_data, 1200)
+                    if peak_20m_hr: save_activity_effort(db, user_id, act.stravaId, act.type, "Peak 20m HR", peak_20m_hr, act.startDate)
+
+                    # Save new extensive HR curve
+                    for label, secs in HR_DURATIONS.items():
+                        peak_hr = calculate_peak_power_from_stream(hr_data, secs)
+                        if peak_hr:
+                            save_activity_effort(db, user_id, act.stravaId, act.type, label, peak_hr, act.startDate)
         time.sleep(1.0)
 
     # 2. CLASSIC TIME-FOR-DISTANCE EXTRACTION (Cycling, Running, Swimming)

@@ -10,7 +10,7 @@ from backend.database import get_db
 from backend.models import schema
 from backend.models.pydantic import MacroPlanRequest, MicroPlanRequest, WorkoutCreate, WorkoutUpdate, WeeklyPlanUpdate
 from backend.core.dependencies import get_current_user
-from backend.services.analytics import calculate_biological_baseline, calculate_fitness_fatigue
+from backend.services.analytics import calculate_biological_baseline, calculate_fitness_fatigue, get_performance_curves
 from backend.services import gemini_service
 
 logger = logging.getLogger(__name__)
@@ -42,11 +42,16 @@ def generate_macro_plan(req: MacroPlanRequest, db: Session = Depends(get_db), us
     activities = db.query(schema.Activity).filter(schema.Activity.userId == user.id).all()
     chart_data = calculate_fitness_fatigue(activities)
     
+    curves = get_performance_curves(db, user.id, user.baselineLookbackWeeks or 12)
+
     athlete_context = {
         "ftp": baseline["ftp"],
         "lthr": baseline["lthr"],
-        "fitness": chart_data[-1]["fitness"] if chart_data else 0.0,
-        "fatigue": chart_data[-1]["fatigue"] if chart_data else 0.0
+        "fitness": current_ctl, # or chart_data[-1]["fitness"] depending on the route
+        "fatigue": current_atl, # or chart_data[-1]["fatigue"]
+        "power_curve": curves["power"],
+        "hr_curve_run": curves["hr_run"],
+        "hr_curve_ride": curves["hr_ride"]
     }
 
     try:
@@ -99,11 +104,16 @@ def generate_micro_plan(req: MicroPlanRequest, db: Session = Depends(get_db), us
     current_ctl = chart_data[-1]["fitness"] if chart_data else 0.0
     current_atl = chart_data[-1]["fatigue"] if chart_data else 0.0
 
+    curves = get_performance_curves(db, user.id, user.baselineLookbackWeeks or 12)
+
     athlete_context = {
         "ftp": baseline["ftp"],
         "lthr": baseline["lthr"],
-        "fitness": current_ctl,
-        "fatigue": current_atl
+        "fitness": current_ctl, # or chart_data[-1]["fitness"] depending on the route
+        "fatigue": current_atl, # or chart_data[-1]["fatigue"]
+        "power_curve": curves["power"],
+        "hr_curve_run": curves["hr_run"],
+        "hr_curve_ride": curves["hr_ride"]
     }
 
     week_dates = [(week_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]

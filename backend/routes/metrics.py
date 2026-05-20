@@ -8,6 +8,8 @@ from backend.models.pydantic import PBUpdate
 from backend.core.dependencies import get_current_user
 from backend.services.analytics import calculate_biological_baseline, calculate_fitness_fatigue
 
+from datetime import timezone, timedelta
+
 # Create a router for all dashboard, chart, calendar, and record data
 router = APIRouter(prefix="/api", tags=["metrics"])
 
@@ -111,3 +113,37 @@ def update_pb(pb_id: int, pb_in: PBUpdate, db: Session = Depends(get_db), user: 
     pb.stravaActivityId = pb_in.activityId
     db.commit()
     return {"success": True}
+
+@router.get("/analytics/curves")
+def get_analytics_curves(db: Session = Depends(get_db), user: schema.User = Depends(get_current_user)):
+    lookback_weeks = user.baselineLookbackWeeks if user.baselineLookbackWeeks is not None else 12
+    cutoff_date = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
+
+    # Fetch all efforts within the lookback window
+    efforts = db.query(schema.ActivityEffort).filter(
+        schema.ActivityEffort.userId == user.id,
+        schema.ActivityEffort.date >= cutoff_date
+    ).all()
+
+    # Define strict order for X-axis
+    power_labels = ["5s", "15s", "30s", "1m", "5m", "10m", "20m", "60m", "90m", "120m"]
+    hr_labels = ["15s", "1m", "5m", "10m", "20m", "60m", "90m", "120m"]
+    
+    # Initialize dictionary for max values
+    max_power = {label: 0 for label in power_labels}
+    max_hr = {"Run": {label: 0 for label in hr_labels}, "Ride": {label: 0 for label in hr_labels}}
+
+    for eff in efforts:
+        clean_label = eff.distanceName.replace(" Power", "").replace(" HR", "")
+        
+        if "Power" in eff.distanceName and clean_label in max_power:
+            max_power[clean_label] = max(max_power[clean_label], eff.timeSeconds)
+            
+        elif "HR" in eff.distanceName and clean_label in hr_labels and eff.sportType in ["Run", "Ride"]:
+            max_hr[eff.sportType][clean_label] = max(max_hr[eff.sportType][clean_label], eff.timeSeconds)
+
+    return {
+        "power": {"labels": power_labels, "data": [max_power[lbl] or None for lbl in power_labels]},
+        "hr_run": {"labels": hr_labels, "data": [max_hr["Run"][lbl] or None for lbl in hr_labels]},
+        "hr_ride": {"labels": hr_labels, "data": [max_hr["Ride"][lbl] or None for lbl in hr_labels]}
+    }

@@ -52,6 +52,32 @@ def calculate_biological_baseline(db: Session, user_id: int):
 
     return {"ftp": ftp, "lthr": lthr, "maxHr": max_hr}
 
+def get_performance_curves(db: Session, user_id: int, lookback_weeks: int = 12):
+    cutoff_date = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
+    efforts = db.query(schema.ActivityEffort).filter(
+        schema.ActivityEffort.userId == user_id,
+        schema.ActivityEffort.date >= cutoff_date
+    ).all()
+
+    power_labels = ["5s", "15s", "30s", "1m", "5m", "10m", "20m", "60m", "90m", "120m"]
+    hr_labels = ["15s", "1m", "5m", "10m", "20m", "60m", "90m", "120m"]
+    
+    max_power = {label: 0 for label in power_labels}
+    max_hr = {"Run": {label: 0 for label in hr_labels}, "Ride": {label: 0 for label in hr_labels}}
+
+    for eff in efforts:
+        clean_label = eff.distanceName.replace(" Power", "").replace(" HR", "")
+        if "Power" in eff.distanceName and clean_label in max_power:
+            max_power[clean_label] = max(max_power[clean_label], eff.timeSeconds)
+        elif "HR" in eff.distanceName and clean_label in hr_labels and eff.sportType in ["Run", "Ride"]:
+            max_hr[eff.sportType][clean_label] = max(max_hr[eff.sportType][clean_label], eff.timeSeconds)
+
+    return {
+        "power": max_power,
+        "hr_run": max_hr["Run"],
+        "hr_ride": max_hr["Ride"]
+    }
+
 def calculate_fitness_fatigue(activities, start_date=None, end_date=None):
     """
     Calculates Fitness (CTL), Fatigue (ATL), and Form (TSB) over time.
